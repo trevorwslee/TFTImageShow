@@ -77,7 +77,7 @@ bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap)
 DDMasterResetPassiveConnectionHelper pdd(dumbdisplay);
 
 GraphicalDDLayer* imageLayer;
-LcdDDLayer* autoSaveOptioLayer;
+LcdDDLayer* autoSaveOptionLayer;
 LcdDDLayer* saveButtonLayer;
 LcdDDLayer* savedCountLabelLayer;
 SevenSegmentRowDDLayer* savedCountLayer;
@@ -134,11 +134,11 @@ void initializeDD() {
   saveButtonLayer->writeCenteredLine("Save", 1);
   saveButtonLayer->enableFeedback("f");
 
-  autoSaveOptioLayer = dumbdisplay.createLcdLayer(6, 1);
-  autoSaveOptioLayer->backgroundColor("ivory");
-  autoSaveOptioLayer->border(1, "blue", "raised");
-  autoSaveOptioLayer->padding(1);
-  autoSaveOptioLayer->enableFeedback("fl");
+  autoSaveOptionLayer = dumbdisplay.createLcdLayer(6, 1);
+  autoSaveOptionLayer->backgroundColor("ivory");
+  autoSaveOptionLayer->border(1, "blue", "raised");
+  autoSaveOptionLayer->padding(1);
+  autoSaveOptionLayer->enableFeedback("fl");
 
   savedCountLabelLayer = dumbdisplay.createLcdLayer(8, 1);
   savedCountLabelLayer->backgroundColor("azure");
@@ -168,7 +168,7 @@ void initializeDD() {
           .addLayer(savedCountLabelLayer)
           .addLayer(savedCountLayer)
         .endGroup()  
-        .addLayer(autoSaveOptioLayer)
+        .addLayer(autoSaveOptionLayer)
       .endGroup()
     .endGroup()
     .build());
@@ -242,19 +242,19 @@ DDJpegImage& getSavedImage(DDJpegImage& tempImage) {
 }
 
 
-void updateDD(bool is_first_update) {
-  bool update_ui = is_first_update;
+void updateDD(bool isFirstUpdate) {
+  bool updateUI = isFirstUpdate;
 
-  if (autoSaveOptioLayer->getFeedback() != NULL) {
+  if (autoSaveOptionLayer->getFeedback() != NULL) {
     autoSave = !autoSave;
-    update_ui = true;
+    updateUI = true;
   }
 
-  if (update_ui) {
+  if (updateUI) {
     if (autoSave) {
-      autoSaveOptioLayer->writeLine("Auto✅️"); 
+      autoSaveOptionLayer->writeLine("Auto✅️"); 
     } else {
-      autoSaveOptioLayer->writeLine("Auto⛔");
+      autoSaveOptionLayer->writeLine("Auto⛔");
     }
   }
 
@@ -275,8 +275,8 @@ void updateDD(bool is_first_update) {
     }
   }
 
-  if (is_first_update || state == NOTHING) {
-    if (is_first_update || imageLayer->getFeedback() != NULL) {
+  if (isFirstUpdate || state == NOTHING) {
+    if (isFirstUpdate || imageLayer->getFeedback() != NULL) {
       saveButtonLayer->disabled(true);
       imageLayer->noBackgroundColor();
       state = DOWNLOADING_FOR_IMAGE;
