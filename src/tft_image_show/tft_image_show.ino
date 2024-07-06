@@ -25,12 +25,17 @@
 
 
 #if defined(FOR_PICOW)  
+  #define A_TFT_BL    21
+  #define A_TFT_CS    17
+  #define A_TFT_DC    16
+  #define A_TFT_SCLK  18
+  #define A_TFT_MOSI  19
+  #define A_TFT_RST   20
+  #define TFT_WIDTH   320
+  #define TFT_HEIGHT  240
   #include <Adafruit_GFX.h>    // Core graphics library
   #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
-  #define TFT_WIDTH  320
-  #define TFT_HEIGHT 240
-  #define HAS_A_TFT
-  Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
+  Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_RST);
 #elif defined(FOR_TCAMERAPLUS)
   #include <TFT_eSPI.h>
   TFT_eSPI tft = TFT_eSPI();
@@ -38,6 +43,16 @@
   #error board not supported
 #endif
 
+
+// set MAX_IMAGE_COUNT to 0 to force reformat the storage
+#define MAX_IMAGE_COUNT  10
+
+
+
+#include <FS.h>
+#include <LittleFS.h>
+
+#define STORAGE_FS       LittleFS
 
 
 #include <TJpg_Decoder.h>
@@ -48,7 +63,7 @@ bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap)
   if ( y >= tft.height() ) return 0;
 
   // This function will clip the image block rendering automatically at the TFT boundaries
-#if defined(HAS_A_TFT)
+#if defined(A_TFT_CS)
   tft.drawRGBBitmap(x, y, bitmap, w, h);
 #else
   tft.pushRect(x, y, w, h, bitmap);
@@ -119,19 +134,13 @@ void initializeDD() {
   saveButtonLayer->padding(1);
   saveButtonLayer->writeCenteredLine("💾", 0);
   saveButtonLayer->writeCenteredLine("Save", 1);
-  if (MAX_IMAGE_COUNT > 0) {
-    saveButtonLayer->enableFeedback("fl");
-  }
+  saveButtonLayer->enableFeedback("fl");
 
   autoSaveOptioLayer = dumbdisplay.createLcdLayer(6, 1);
   autoSaveOptioLayer->backgroundColor("ivory");
   autoSaveOptioLayer->border(1, "blue", "raised");
   autoSaveOptioLayer->padding(1);
-  if (MAX_IMAGE_COUNT > 0) {
-    autoSaveOptioLayer->enableFeedback("fl");
-  } else {
-    autoSaveOptioLayer->disabled(true);
-  }
+  autoSaveOptioLayer->enableFeedback("fl");
 
 
   savedCountLabelLayer = dumbdisplay.createLcdLayer(8, 1);
@@ -288,9 +297,7 @@ void updateDD(bool is_first_update) {
       unsigned long retrieveTakenMillis = millis() - retrieveStartMillis;
       dumbdisplay.writeComment(String("* ") + jpegImage.width + "x" + jpegImage.height + " (" + String(jpegImage.byteCount / 1024.0) + " KB) in " + String(retrieveTakenMillis / 1000.0) + "s");
       if (jpegImage.isValid()) {
-        if (MAX_IMAGE_COUNT > 0) {
-          saveButtonLayer->disabled(autoSave);
-        }
+        saveButtonLayer->disabled(autoSave);
         imageLayer->backgroundColor("blue");
         tft.fillScreen(COLOR_BG);
         int x = (TFT_WIDTH - jpegImage.width) / 2;
@@ -319,21 +326,21 @@ void setup() {
   Serial.begin(115200);
 
 #if defined(FOR_PICOW)  
-  pinMode(TFT_BL, OUTPUT);
-  digitalWrite(TFT_BL, 1);  // light it up
+  pinMode(A_TFT_BL, OUTPUT);
+  digitalWrite(A_TFT_BL, 1);  // light it up
   tft.init(240, 320, SPI_MODE0);
   tft.invertDisplay(false);
   tft.setRotation(1);
   tft.setSPISpeed(40000000);
 #endif  
 
-#if !defined(HAS_A_TFT)  
+#if !defined(A_TFT_CS)  
   tft.init();
   tft.setRotation(0);
 #endif
 
   TJpgDec.setJpgScale(1);
-#if !defined(HAS_A_TFT)
+#if !defined(A_TFT_CS)
   TJpgDec.setSwapBytes(true);
 #endif
   TJpgDec.setCallback(tft_output);
@@ -360,13 +367,18 @@ void loop() {
           }
       }
     } else {
-      if (!STORAGE_FS.format()) {
-        dumbdisplay.logToSerial("Unable to format(), aborting");
+      // if (!STORAGE_FS.format()) {
+      //   dumbdisplay.logToSerial("Unable to format(), aborting");
+      //   delay(2000);
+      //   return;
+      // }
+      if (!STORAGE_FS.begin()) {
+        dumbdisplay.logToSerial("Unable to begin(), aborting\n");
         delay(2000);
         return;
       }
-      if (!STORAGE_FS.begin()) {
-        dumbdisplay.logToSerial("Unable to begin(), aborting\n");
+      if (!STORAGE_FS.format()) {
+        dumbdisplay.logToSerial("Unable to format(), aborting");
         delay(2000);
         return;
       }
