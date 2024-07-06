@@ -16,7 +16,7 @@
 
 
 
-#define NEXT_S                5
+#define NEXT_S              5
 
 #define COLOR_BG            0xFFFF
 #define COLOR_IDLE_BG       0x7BEF
@@ -46,7 +46,6 @@
 
 // set MAX_IMAGE_COUNT to 0 to force reformat the storage
 #define MAX_IMAGE_COUNT  10
-
 
 
 #include <FS.h>
@@ -97,9 +96,9 @@ enum State {
   RETRIEVING_IMAGE,
 };
 
+
 State state;
 unsigned long retrieveStartMillis;
-
 
 DDJpegImage currentJpegImage;
 bool autoSave = false;
@@ -127,21 +126,19 @@ void initializeDD() {
   imageLayer->setTextSize(18);
   imageLayer->enableFeedback("fl");
 
-
   saveButtonLayer = dumbdisplay.createLcdLayer(6, 2);
   saveButtonLayer->backgroundColor("ivory");
   saveButtonLayer->border(1, "blue", "raised");
   saveButtonLayer->padding(1);
   saveButtonLayer->writeCenteredLine("💾", 0);
   saveButtonLayer->writeCenteredLine("Save", 1);
-  saveButtonLayer->enableFeedback("fl");
+  saveButtonLayer->enableFeedback("f");
 
   autoSaveOptioLayer = dumbdisplay.createLcdLayer(6, 1);
   autoSaveOptioLayer->backgroundColor("ivory");
   autoSaveOptioLayer->border(1, "blue", "raised");
   autoSaveOptioLayer->padding(1);
   autoSaveOptioLayer->enableFeedback("fl");
-
 
   savedCountLabelLayer = dumbdisplay.createLcdLayer(8, 1);
   savedCountLabelLayer->backgroundColor("azure");
@@ -154,6 +151,7 @@ void initializeDD() {
   savedCountLayer->border(10, "red", "flat");
   savedCountLayer->padding(10);
   savedCountLayer->showNumber(savedImageCount, "0");
+  savedCountLayer->enableFeedback();
 
   // create a tunnel for downloading web image ... initially, no URL yet ... downloaded.png is the name of the image to save
   webImageTunnel = dumbdisplay.createImageDownloadTunnel("", "downloaded.png");
@@ -204,12 +202,25 @@ void saveCurrentImage() {
     nextSaveImageIndex = (nextSaveImageIndex + 1) % MAX_IMAGE_COUNT; 
     dumbdisplay.logToSerial("$ savedImageCount: " + String(savedImageCount));
     savedCountLayer->showNumber(savedImageCount, "0");
-    saveButtonLayer->disabled(true);
     if (true) {
       currentJpegImage.release();
     }
   }
 }
+
+void deleteAllSavedImage() {
+  for (int i = 0; i < savedImageCount; i++) {
+    String fileName = formatImageFileName(i);
+    if (STORAGE_FS.exists(fileName)) {
+      STORAGE_FS.remove(fileName);
+    }
+  }
+  savedImageCount = 0;
+  nextSaveImageIndex = 0;
+  dumbdisplay.log("!!! Deleted all saved images !!!");
+  savedCountLayer->showNumber(savedImageCount, "0");
+}
+
 DDJpegImage& getSavedImage(DDJpegImage& tempImage) {
   String fileName = formatImageFileName(nextShowImageIndex);
   File f = STORAGE_FS.open(fileName, "r");
@@ -230,6 +241,7 @@ DDJpegImage& getSavedImage(DDJpegImage& tempImage) {
   return tempImage;
 }
 
+
 void updateDD(bool is_first_update) {
   bool update_ui = is_first_update;
 
@@ -246,11 +258,23 @@ void updateDD(bool is_first_update) {
     }
   }
 
-
-  if (saveButtonLayer->getFeedback() != NULL) {
-    saveCurrentImage();
+  if (state == NOTHING) {
+    if (saveButtonLayer->getFeedback() != NULL) {
+      saveButtonLayer->disabled(true);
+      saveCurrentImage();
+    }
   }
-  
+
+  const DDFeedback* fb = savedCountLayer->getFeedback();
+  if (state == NOTHING) {
+    if (fb != NULL && fb->type == DOUBLECLICK) {
+      if (state == NOTHING) {
+        savedCountLayer->flash();
+        deleteAllSavedImage();
+      }
+    }
+  }
+
   if (is_first_update || state == NOTHING) {
     if (is_first_update || imageLayer->getFeedback() != NULL) {
       saveButtonLayer->disabled(true);
