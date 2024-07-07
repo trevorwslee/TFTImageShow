@@ -2,14 +2,14 @@
 title: Simple Arduino Framework Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
 description: Simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
 tags: 'raspberrypipico, esp32, spitftlcd'
+cover_image: ./imgs/MAIN.jpg
 published: false
 id: 1914271
 ---
 
 # Simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
 
-
-The target of this [project](https://github.com/trevorwslee/TFTImageShow) is to implement a simple Arduino framework photos / images showing "photo frame" using Raspberry Pi Pico or ESP32 with photos / images downloaded from the Internet via DumbDisplay -- an Android app running on your Android phone.
+The target of this [project](https://github.com/trevorwslee/TFTImageShow) is to implement, mostly the software part, of a simple Arduino framework photos / images showing "photo frame" using Raspberry Pi Pico or ESP32 with photos / images downloaded from the Internet via DumbDisplay -- an Android app running on your Android phone.
 
 The microcontroller program here is developed in Arduino framework using VS Code and PlatformIO, in the similar fashion as described the post -- [A Way to Run Arduino Sketch With VSCode PlatformIO Directly](https://www.instructables.com/A-Way-to-Run-Arduino-Sketch-With-VSCode-PlatformIO/)
 
@@ -25,7 +25,10 @@ The TFT LCD module library used is the `Adafruit-ST7735-Library` Arduino library
 For ESP32, LiLyGo TDisplay / TCamera Plus board is used. 
 The TFT LCD module library use is the `bodmer/TFT_eSPI` Arduino library.
 
-![](imgs/MAIN.jpg)
+![](imgs/tft_image_show.gif)
+
+
+
 
 
 In all cases, the **Jpeg** library used is the `bodmer/TJpg_Decoder` Arduino library.
@@ -37,7 +40,7 @@ The microcontroller board has two running modes:
 1) When connected to the DumbDisplay Android app (using WiFi), a simple UI is provided for downloading images from some predefined sites,
    as well as for transferring the downloaded image in **Jpeg** format to the microcontroller board.
    Note that the predefined sites is hardcoded in the sketch that you can conveniently change as desired by changing the sketch.
-2) When not connected to the DumbDisplay Android app, the microcontroller cycles through the saved **Jpeg** images and display them to the TFT LCD 
+2) When not connected to the DumbDisplay Android app, the microcontroller cycles through the saved **Jpeg** images displaying them to the TFT LCD 
    screen one by one, like a simple "photo frame". Note that since the images are stored in **LittleFS**, they will survive even after reboot of the
    microcontroller board.
 
@@ -201,7 +204,7 @@ You will need to create the `_secret.h` with content like
 With proper WiFi setup, the microcontroller board will connect to DumbDisplay Android app using WiFi.
 
 If you do not want to use WiFi, simply don't provide the macros `WIFI_SSID` and `WIFI_PASSWORD`.
-In such a case, connection to DumbDisplay Android app is assumed to be using serial UART (slower) via and OTG adapter. Please refer to the above mentioned post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
+In such a case, connection to DumbDisplay Android app is assumed to be using serial UART (slower) via an OTG adapter. Please refer to the above mentioned post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
 
 The sketch of the project is `tft_image_show/tft_image_show.ino`. You can [easily] customize some aspects of the sketch
 
