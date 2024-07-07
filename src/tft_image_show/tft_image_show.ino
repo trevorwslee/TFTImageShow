@@ -36,7 +36,7 @@
   #include <Adafruit_GFX.h>    // Core graphics library
   #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
   Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_RST);
-#elif defined(FOR_TCAMERAPLUS)
+#elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)
   #include <TFT_eSPI.h>
   TFT_eSPI tft = TFT_eSPI();
 #else
@@ -356,12 +356,12 @@ void setup() {
   tft.invertDisplay(false);
   tft.setRotation(1);
   tft.setSPISpeed(40000000);
-#endif  
-
-#if !defined(A_TFT_CS)  
+#elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)  
   tft.init();
   tft.setRotation(0);
-#endif
+#else
+  #error board not supported
+#endif  
 
   TJpgDec.setJpgScale(1);
 #if !defined(A_TFT_CS)
@@ -391,12 +391,12 @@ void loop() {
           }
       }
     } else {
-      // if (!STORAGE_FS.format()) {
-      //   dumbdisplay.logToSerial("Unable to format(), aborting");
-      //   delay(2000);
-      //   return;
-      // }
-      if (!STORAGE_FS.begin()) {
+#ifdef ESP32      
+      bool started = STORAGE_FS.begin(true);
+#else
+      bool started = STORAGE_FS.begin();
+#endif
+      if (!started) {
         dumbdisplay.logToSerial("Unable to begin(), aborting\n");
         delay(2000);
         return;
