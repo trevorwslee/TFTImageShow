@@ -8,6 +8,7 @@ id: 1914271
 
 # Simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
 
+
 The target of this [project](https://github.com/trevorwslee/TFTImageShow) is to implement a simple Arduino framework photos / images showing "photo frame" using Raspberry Pi Pico or ESP32 with photos / images downloaded from the Internet via DumbDisplay -- an Android app running on your Android phone.
 
 The microcontroller program here is developed in Arduino framework using VS Code and PlatformIO, in the similar fashion as described the post -- [A Way to Run Arduino Sketch With VSCode PlatformIO Directly](https://www.instructables.com/A-Way-to-Run-Arduino-Sketch-With-VSCode-PlatformIO/)
@@ -23,6 +24,9 @@ The TFT LCD module library used is the `Adafruit-ST7735-Library` Arduino library
 
 For ESP32, LiLyGo TDisplay / TCamera Plus board is used. 
 The TFT LCD module library use is the `bodmer/TFT_eSPI` Arduino library.
+
+![](imgs/MAIN.jpg)
+
 
 In all cases, the **Jpeg** library used is the `bodmer/TJpg_Decoder` Arduino library.
 
@@ -67,6 +71,10 @@ Anytime you want to change the saved images, reconnect to DumbDisplay Android ap
 For LiLyGo TDisplay / TCamera Plus board, the TFT LCD screen is pre-build in the microcontroller board; hence, no need for any wiring.
 
 For Raspberry Pi Pico board, as mentioned previously, a ST7789 2.8 inch 240x320 SPI TFT LCD module is used; hence, some wiring is necessary
+
+
+![](imgs/TFT_WIRE.jpg)
+
 
 |Raspberry Pi Pico|SPI TFT LCD |
 |-----------------|------------|
@@ -193,9 +201,9 @@ You will need to create the `_secret.h` with content like
 With proper WiFi setup, the microcontroller board will connect to DumbDisplay Android app using WiFi.
 
 If you do not want to use WiFi, simply don't provide the macros `WIFI_SSID` and `WIFI_PASSWORD`.
-In such a case, connection to DumbDisplay Android app is assumed to be via OTG. Please refer to the above mentioned post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
+In such a case, connection to DumbDisplay Android app is assumed to be using serial UART (slower) via and OTG adapter. Please refer to the above mentioned post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
 
-The sketch of the project is `tft_image_show/tft_image_show.ino`. You can customize some aspects of the sketch
+The sketch of the project is `tft_image_show/tft_image_show.ino`. You can [easily] customize some aspects of the sketch
 
 ```
 ...
@@ -234,9 +242,13 @@ listening on 192.168.0.218:10201 ...
 listening on 192.168.0.218:10201 ...
 ```
 
+See that the IP address of the microcontroller board is printed out. 
+
+On DumbDisplay Android app side
+
 |||
 |--|--|
-|See that the IP address of the microcontroller board is printed out. You will need this IP address to configure DumbDisplay Android app to connect it with your microcontroller|![](imgs/DD_WIFI.png)|
+|You will need the microcontroller's IP address to configure DumbDisplay Android app to connect it with your microcontroller|![](imgs/DD_WIFI.png)|
 
 * Start the DumbDisplay app.
 * Click on the Establish Connection icon.
