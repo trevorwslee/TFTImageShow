@@ -1,3 +1,10 @@
+---
+title: Simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
+description: A simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
+tags: 'raspberry pi pico, esp32, spi tft lcd'
+published: false
+---
+
 # Simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
 
 The target of this [project](https://github.com/trevorwslee/TFTImageShow) is to implement a simple Arduino framework photos / images showing "photo frame" using Raspberry Pi Pico or ESP32 with photos / images downloaded from the Internet via DumbDisplay -- an Android app running on your Android phone.
@@ -237,6 +244,7 @@ listening on 192.168.0.218:10201 ...
 * Back to the "establish connection" dialog, a new entry will be added, click on it to establish WIFI connection.
 
 
+Have fun with it!
 
 
 
