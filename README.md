@@ -1,7 +1,7 @@
 ---
 title: Simple Arduino Framework Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
 description: Simple Arduino Framework Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
-tags: 'raspberrypipico, esp32, spitftlcd'
+tags: 'raspberry pi pico, esp32, spitftlcd'
 published: false
 id: 1914271
 ---
