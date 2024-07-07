@@ -11,15 +11,15 @@ id: 1914271
 
 The target of this [project](https://github.com/trevorwslee/TFTImageShow) is to implement, mostly the software part, of a simple Arduino framework photos / images showing "photo frame" using Raspberry Pi Pico or ESP32 with photos / images downloaded from the Internet via DumbDisplay -- an Android app running on your Android phone.
 
-The microcontroller program here is developed in Arduino framework using VS Code and PlatformIO, in the similar fashion as described the post -- [A Way to Run Arduino Sketch With VSCode PlatformIO Directly](https://www.instructables.com/A-Way-to-Run-Arduino-Sketch-With-VSCode-PlatformIO/)
+The microcontroller program here is developed in Arduino framework using VS Code and PlatformIO, in the similar fashion as described by the post -- [A Way to Run Arduino Sketch With VSCode PlatformIO Directly](https://www.instructables.com/A-Way-to-Run-Arduino-Sketch-With-VSCode-PlatformIO/)
 
-The simple remote UI for downloading photos / images from the Internet is realized with the help of the DumbDisplay Android app. For a brief desciption of DumbDisplay, you may want to refer to the post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
+The simple remote UI for downloading photos / images from the Internet is realized with the help of the DumbDisplay Android app. For a brief description of DumbDisplay, you may want to refer to the post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
 
 Please note that
-* The UI is driven by the microcontroller program (sketch).
+* The UI is driven by the microcontroller program. I.e., the control flow of the UI is programmed by the sketch.
 * The downloaded image -- be it in **Jpeg** or **PNG** format -- will be transferred to the microcontroller board in **Jpeg** format, scaled to site inside the TFT LCD screen.
 
-For Raspberry Pi PicoW board (WiFi), a ST7789 2.8 inch 240x320 SPI TFT LCD screen is attached to a Raspberry Pi PicoW board.
+For Raspberry Pi Pico board (WiFi), a ST7789 2.8 inch 240x320 SPI TFT LCD screen is attached to a Raspberry Pi PicoW board.
 The TFT LCD module library used is the `Adafruit-ST7735-Library` Arduino library.
 
 For ESP32, LiLyGo TDisplay / TCamera Plus board is used. 
@@ -28,12 +28,9 @@ The TFT LCD module library use is the `bodmer/TFT_eSPI` Arduino library.
 ![](imgs/tft_image_show.gif)
 
 
-
-
-
 In all cases, the **Jpeg** library used is the `bodmer/TJpg_Decoder` Arduino library.
 
-A simple flash-based **LittleFS** file-system is allocated for storing the downloaded and transferred **Jpeg** images.
+A simple flash-based **LittleFS** file-system is allocated for storing the saved **Jpeg** images.
 
 The microcontroller board has two running modes:
 
@@ -41,7 +38,7 @@ The microcontroller board has two running modes:
    as well as for transferring the downloaded image in **Jpeg** format to the microcontroller board.
    Note that the predefined sites is hardcoded in the sketch that you can conveniently change as desired by changing the sketch.
 2) When not connected to the DumbDisplay Android app, the microcontroller cycles through the saved **Jpeg** images displaying them to the TFT LCD 
-   screen one by one, like a simple "photo frame". Note that since the images are stored in **LittleFS**, they will survive even after reboot of the
+   screen one by one like a simple "photo frame". Note that since the images are stored in **LittleFS**, they will survive even after reboot of the
    microcontroller board.
 
 ***Connect for the UI; disconnect to enjoy "photo frame" slide show.***    
@@ -52,18 +49,21 @@ The microcontroller board has two running modes:
 |--|--|
 |![](imgs/UI_00.png)|![](imgs/UI_01.png)|
 
-The first time connected, an image download will be initiated automatically. After downloading an image the image will be transferred to the microcontroller board in **Jpeg** format and be displayed to the TFT LCD screen.
+The first time connected, an image download will be initiated automatically.
+After downloading an image the image will be transferred to the microcontroller board in **Jpeg** format and be displayed to the TFT LCD screen.
 
 You can choose to save the transferred image by clicking the ***💾Save*** button.
-Notice that the [7-segment] *number* displayed next to the ***Saved🗂️*** label will be bumped up. The *number* indicates the number of images saved to the microcontroller's **LittleFS** storage.
+Notice that the [7-segment] *number* displayed next to the ***Saved🗂️*** label will be bumped up after saving.
+The *number* indicates the number of images saved to the microcontroller's **LittleFS** storage.
 
 If you so desired, you can turn on auto-save by clicking the ***Auto*** save button. (You turn off auto-save by clicking the button again.)
 
-If you want to trigger another download of image, click on the canvas that shows the downloaded image.
+If you want to initiate another download of image, click on the canvas that shows the downloaded image.
 
 If you want to delete all the saved images, double-click on the [7-segment] *number*.
 
-After you are done with downloading and saving images, disconnect the microcontroller. After disconnection, the "photo frame" slide show begins in the microcontroller side.
+After you are done with downloading and saving images, disconnect the microcontroller.
+After disconnection, the "photo frame" slide show begins in the microcontroller side.
 
 Anytime you want to change the saved images, reconnect to DumbDisplay Android app.
 
@@ -71,7 +71,7 @@ Anytime you want to change the saved images, reconnect to DumbDisplay Android ap
 
 # Wiring TFT LCD Module
 
-For LiLyGo TDisplay / TCamera Plus board, the TFT LCD screen is pre-build in the microcontroller board; hence, no need for any wiring.
+For LiLyGo TDisplay / TCamera Plus board, the TFT LCD screen is in-built the microcontroller board; hence, no need for additional wiring.
 
 For Raspberry Pi Pico board, as mentioned previously, a ST7789 2.8 inch 240x320 SPI TFT LCD module is used; hence, some wiring is necessary
 
@@ -92,9 +92,10 @@ For Raspberry Pi Pico board, as mentioned previously, a ST7789 2.8 inch 240x320 
 
 
 
-# Developing and Building of the Sketch
+# Developing and Building
 
-As mentioned previously, the sketch will be developed using VS Code and PlatformIO. Please clone the PlatformIO project [TFTImageShow](https://github.com/trevorwslee/TFTImageShow) GitHub repository.
+As mentioned previously, the sketch will be developed using VS Code and PlatformIO.
+Please clone the PlatformIO project [TFTImageShow](https://github.com/trevorwslee/TFTImageShow) GitHub repository.
 
 The configurations for developing and building of the sketch in basically captured in the `platformio.ini` file
 ```
@@ -154,7 +155,8 @@ build_flags =
 For `PICOW`, the platform core is download from `https://github.com/maxgerhardt/platform-raspberrypi.git`.
 (As far as I know, this is the only PlatformIO platform core that supports the use of Raspberry Pi PicoW WiFi capability.)
 
-It might take a long time for PlatformIO to download it. If PlatformIO fails to install the platform core, it might be that your system doesn't have long "file name" enabled, in such a case, try 
+It might take a long time for PlatformIO to download and install it.
+If PlatformIO fails to download and install the platform core, it might be that your system doesn't have long "file name" enabled, in such a case, try 
 ```
 git config --system core.longpaths true
 ```  
@@ -201,10 +203,12 @@ You will need to create the `_secret.h` with content like
 #define WIFI_PASSWORD       "your-wifi-password"
 ```
 
-With proper WiFi setup, the microcontroller board will connect to DumbDisplay Android app using WiFi.
+With these macros for accessing your WiFi, the microcontroller board will connect to DumbDisplay Android app using WiFi.
+If you do not want to use WiFi, simply don't provide them.
+In such a case, connection to DumbDisplay Android app is assumed to be using serial UART (slower) via an OTG adapter.
+Please refer to the above mentioned post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
 
-If you do not want to use WiFi, simply don't provide the macros `WIFI_SSID` and `WIFI_PASSWORD`.
-In such a case, connection to DumbDisplay Android app is assumed to be using serial UART (slower) via an OTG adapter. Please refer to the above mentioned post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
+# The Sketch
 
 The sketch of the project is `tft_image_show/tft_image_show.ino`. You can [easily] customize some aspects of the sketch
 
@@ -235,6 +239,154 @@ const char* getDownloadImageURL() {
   For normal running, `MAX_IMAGE_COUNT` should be at lease 1.
 * You can modify `urls` / `getDownloadImageURL()` to add / remove Internet sites for downloading images.  
 
+# Sketch Highlight -- TFT LCD Library `Adafruit-ST7735-Library` 
+
+Here is how `Adafruit-ST7735-Library` used in the sketch.
+
+First a global `tft` object is defined like
+```
+  #define A_TFT_BL    21
+  #define A_TFT_CS    17
+  #define A_TFT_DC    16
+  #define A_TFT_SCLK  18
+  #define A_TFT_MOSI  19
+  #define A_TFT_RST   20
+  #define TFT_WIDTH   320
+  #define TFT_HEIGHT  240
+  #include <Adafruit_ST7789.h>
+  Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_RST);
+```
+Notice the pin assignments exactly match the wiring described previously.
+
+Then in `setup()`
+```
+  pinMode(A_TFT_BL, OUTPUT);
+  digitalWrite(A_TFT_BL, 1);  // light it up
+  tft.init(240, 320, SPI_MODE0);
+  tft.invertDisplay(false);
+  tft.setRotation(1);
+  tft.setSPISpeed(40000000);
+```
+* The back-light part is obvious.
+* The TFT LCD screen size is 240x320.
+* Why `SPI_MODE0` and other settings? Simply, they work for me. 
+
+# Sketch Highlight -- TFT LCD Library `bodmer/TFT_eSPI` 
+
+First a global `tft` object is defined like
+```
+  #include <TFT_eSPI.h>
+  TFT_eSPI tft = TFT_eSPI();
+```
+
+Then in `setup()`
+```
+  tft.init();
+  tft.setRotation(0);
+```
+
+# Sketch Highlight -- Jpeg Library `bodmer/TJpg_Decoder` 
+
+Include the needed headers
+```
+#include <TJpg_Decoder.h>
+```
+
+In `setup()`
+```
+#if defined(TFT_ESPI_VERSION)
+  TJpgDec.setSwapBytes(true);
+#endif
+  TJpgDec.setCallback(tft_output);
+```
+Why `setSwapBytes(true)`? Since it seems to work that way.
+
+And here is the *callback* `tft_output`, which is mostly copied from an example of `bodmer/TJpg_Decoder`
+```
+bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap) {
+  // Stop further decoding as image is running off bottom of screen
+  if ( y >= tft.height() ) return 0;
+  // This function will clip the image block rendering automatically at the TFT boundaries
+#if defined(TFT_ESPI_VERSION)
+  tft.pushRect(x, y, w, h, bitmap);
+#else
+  tft.drawRGBBitmap(x, y, bitmap, w, h);
+#endif
+  // Return 1 to decode next block
+  return 1;
+}
+```
+Notice that in case of using `bodmer/TFT_eSPI`, the way is draw the decoded **Jpeg** chunk is 
+```
+  tft.pushRect(x, y, w, h, bitmap);
+```
+If `Adafruit-ST7735-Library` is use, the way to draw the decoded **Jpeg** chunk is
+```
+  tft.drawRGBBitmap(x, y, bitmap, w, h);
+```
+
+After setting `TJpgDec` up, a **Jpeg** image can be drawn like
+```
+  TJpgDec.drawJpg(x, y, jpegImage.bytes, jpegImage.byteCount);
+```
+
+
+# Sketch Highlight -- **LittleFS** 
+
+
+Include the needed headers
+```
+#include <FS.h>
+#include <LittleFS.h>
+```
+
+In `setup()`
+```
+ LittleFS.begin();
+```
+
+If you want to format the **LittleFS**, call `format()` like
+```
+  LittleFS.format()
+```
+
+**Jpeg** image can be saved like
+```
+  File f = LittleFS.open(fileName, "w");
+  if (f) {
+    f.println(currentJpegImage.width);
+    f.println(currentJpegImage.height);
+    f.println(currentJpegImage.byteCount);
+    f.write(currentJpegImage.bytes, currentJpegImage.byteCount);
+    f.close();
+  }
+```
+Notice that not only the **Jpeg** image bytes got written to the file, the various metadata are saved first. (I.e. the file is not a normal **JPG** file, but a customized one.)
+
+And **Jpeg** image can be read back like
+```
+  File f = LittleFS.open(fileName, "r");
+  if (f) {
+    int width = f.readStringUntil('\n').toInt();
+    int height = f.readStringUntil('\n').toInt();
+    int byteCount = f.readStringUntil('\n').toInt();
+    uint8_t* bytes = new uint8_t[byteCount];
+    f.readBytes((char*) bytes, byteCount);
+    f.close();
+    tempImage.width = width;
+    tempImage.height = height;
+    tempImage.byteCount = byteCount;
+    tempImage.bytes = bytes;
+  }
+```
+
+
+# Sketch Highlight -- DumbDisplay
+
+TODO
+
+
+# Build and Upload
 
 Build, upload the sketch and try it out! 
 
@@ -261,7 +413,6 @@ On DumbDisplay Android app side
 
 
 Have fun with it!
-
 
 
 # Enjoy!

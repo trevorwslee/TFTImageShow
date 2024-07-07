@@ -34,8 +34,7 @@
   #define A_TFT_RST   20
   #define TFT_WIDTH   320
   #define TFT_HEIGHT  240
-  #include <Adafruit_GFX.h>    // Core graphics library
-  #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
+  #include <Adafruit_ST7789.h>
   Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_RST);
 #elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)
   #include <TFT_eSPI.h>
@@ -53,22 +52,19 @@
 #include <FS.h>
 #include <LittleFS.h>
 
-#define STORAGE_FS          LittleFS
-
 
 #include <TJpg_Decoder.h>
 
 // the following is basically copied from TJpg_Decoder example
-bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap)
-{
+bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap) {
   // Stop further decoding as image is running off bottom of screen
   if ( y >= tft.height() ) return 0;
 
   // This function will clip the image block rendering automatically at the TFT boundaries
-#if defined(A_TFT_CS)
-  tft.drawRGBBitmap(x, y, bitmap, w, h);
-#else
+#if defined(TFT_ESPI_VERSION)
   tft.pushRect(x, y, w, h, bitmap);
+#else
+  tft.drawRGBBitmap(x, y, bitmap, w, h);
 #endif
 
   // Return 1 to decode next block
@@ -196,7 +192,7 @@ String formatImageMetaFileName(int index) {
 void saveCurrentImage() {
   if (currentJpegImage.isValid()) {
     String fileName = formatImageFileName(nextSaveImageIndex);
-    File f = STORAGE_FS.open(fileName, "w");
+    File f = LittleFS.open(fileName, "w");
     if (f) {
       f.println(currentJpegImage.width);
       f.println(currentJpegImage.height);
@@ -220,8 +216,8 @@ void saveCurrentImage() {
 void deleteAllSavedImage() {
   for (int i = 0; i < savedImageCount; i++) {
     String fileName = formatImageFileName(i);
-    if (STORAGE_FS.exists(fileName)) {
-      STORAGE_FS.remove(fileName);
+    if (LittleFS.exists(fileName)) {
+      LittleFS.remove(fileName);
     }
   }
   savedImageCount = 0;
@@ -232,7 +228,7 @@ void deleteAllSavedImage() {
 
 DDJpegImage& getSavedImage(DDJpegImage& tempImage) {
   String fileName = formatImageFileName(nextShowImageIndex);
-  File f = STORAGE_FS.open(fileName, "r");
+  File f = LittleFS.open(fileName, "r");
   if (f) {
     int width = f.readStringUntil('\n').toInt();
     int height = f.readStringUntil('\n').toInt();
@@ -251,7 +247,9 @@ DDJpegImage& getSavedImage(DDJpegImage& tempImage) {
 }
 
 
-void updateDD(bool isFirstUpdate) {
+void updateDD() {
+  bool isFirstUpdate = !pdd.firstUpdated();
+
   bool updateUI = isFirstUpdate;
 
   if (autoSaveOptionLayer->getFeedback() != NULL) {
@@ -377,8 +375,8 @@ void setup() {
   #error board not supported
 #endif  
 
-  TJpgDec.setJpgScale(1);
-#if !defined(A_TFT_CS)
+  //TJpgDec.setJpgScale(1);
+#if defined(TFT_ESPI_VERSION)
   TJpgDec.setSwapBytes(true);
 #endif
   TJpgDec.setCallback(tft_output);
@@ -394,11 +392,11 @@ void loop() {
   if (!initializeStorageFS) {
     savedImageCount = 0;
     dumbdisplay.logToSerial("Initialized STORAGE_FS");
-    if (MAX_IMAGE_COUNT > 0 && STORAGE_FS.begin()) {
+    if (MAX_IMAGE_COUNT > 0 && LittleFS.begin()) {
       dumbdisplay.logToSerial("... existing STORAGE_FS ...");
       for (int i = 0; i < MAX_IMAGE_COUNT; i++) {
           String fileName = formatImageFileName(i);
-          if (STORAGE_FS.exists(fileName)) {
+          if (LittleFS.exists(fileName)) {
             savedImageCount++;
           } else {
             break;
@@ -406,16 +404,16 @@ void loop() {
       }
     } else {
 #ifdef ESP32      
-      bool started = STORAGE_FS.begin(true);
+      bool started = LittleFS.begin(true);
 #else
-      bool started = STORAGE_FS.begin();
+      bool started = LittleFS.begin();
 #endif
       if (!started) {
         dumbdisplay.logToSerial("Unable to begin(), aborting\n");
         delay(2000);
         return;
       }
-      if (!STORAGE_FS.format()) {
+      if (!LittleFS.format()) {
         dumbdisplay.logToSerial("Unable to format(), aborting");
         delay(2000);
         return;
@@ -425,21 +423,7 @@ void loop() {
     initializeStorageFS = true;
   }
 
- pdd.loop([](){
-    // **********
-    // *** initializeCallback ***
-    // **********
-    initializeDD();
-  }, [](){
-    // **********
-    // *** updateCallback ***
-    // **********
-    updateDD(!pdd.firstUpdated());
-  }, [](){
-    // **********
-    // *** disconnectedCallback ***
-    // **********
-  });
+  pdd.loop(initializeDD, updateDD);
   if (pdd.isIdle()) {
     if (pdd.justBecameIdle()) {
       // re-start slide show
