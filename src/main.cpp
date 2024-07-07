@@ -2,8 +2,8 @@
 
 // ***
 // the below _secret.h just define macros like:
-// #define WIFI_SSID           "ssid"
-// #define WIFI_PASSWORD       "password"
+// #define WIFI_SSID           "your-wifi-ssid"
+// #define WIFI_PASSWORD       "your-wifi-password"
 // ***
 #include "_secret.h"
 

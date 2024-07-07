@@ -15,8 +15,9 @@
 #endif
 
 
-
+// NEXT_S defines the delay (in seconds) to show next saved image
 #define NEXT_S              5
+
 
 #define COLOR_BG            0xFFFF
 #define COLOR_IDLE_BG       0x7BEF
@@ -44,18 +45,20 @@
 #endif
 
 
+// MAX_IMAGE_COUNT define that maximum number of images that can be saved
 // set MAX_IMAGE_COUNT to 0 to force reformat the storage
-#define MAX_IMAGE_COUNT  10
+#define MAX_IMAGE_COUNT     10
 
 
 #include <FS.h>
 #include <LittleFS.h>
 
-#define STORAGE_FS       LittleFS
+#define STORAGE_FS          LittleFS
 
 
 #include <TJpg_Decoder.h>
 
+// the following is basically copied from TJpg_Decoder example
 bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap)
 {
   // Stop further decoding as image is running off bottom of screen
@@ -104,6 +107,7 @@ DDJpegImage currentJpegImage;
 bool autoSave = false;
 
 
+// getDownloadImageURL() returns a URL to download an image; add / remove sites as needed
 // download image bigger than needed (on purpose)
 const String urls[] = {
   String("https://loremflickr.com/") + String(2 * TFT_WIDTH) + String("/") + String(2 * TFT_HEIGHT),
@@ -118,7 +122,7 @@ const char* getDownloadImageURL() {
 void initializeDD() {
   tft.fillScreen(COLOR_BG);
 
-  // create a graphical layer for drawing the web image to
+  // create a graphical layer for drawing the downloaded web image to
   imageLayer = dumbdisplay.createGraphicalLayer(2 * TFT_WIDTH, 2 * TFT_HEIGHT);
   imageLayer->border(10, "blue", "round");  
   imageLayer->padding(5);
@@ -126,6 +130,7 @@ void initializeDD() {
   imageLayer->setTextSize(18);
   imageLayer->enableFeedback("fl");
 
+  // create a LCD layer for the save button
   saveButtonLayer = dumbdisplay.createLcdLayer(6, 2);
   saveButtonLayer->backgroundColor("ivory");
   saveButtonLayer->border(1, "blue", "raised");
@@ -134,18 +139,21 @@ void initializeDD() {
   saveButtonLayer->writeCenteredLine("Save", 1);
   saveButtonLayer->enableFeedback("f");
 
+  // create a LCD layer for the auto save option
   autoSaveOptionLayer = dumbdisplay.createLcdLayer(6, 1);
   autoSaveOptionLayer->backgroundColor("ivory");
   autoSaveOptionLayer->border(1, "blue", "raised");
   autoSaveOptionLayer->padding(1);
   autoSaveOptionLayer->enableFeedback("fl");
 
+  // create a LCD layer as the label for the number of saved images
   savedCountLabelLayer = dumbdisplay.createLcdLayer(8, 1);
   savedCountLabelLayer->backgroundColor("azure");
   savedCountLabelLayer->border(1, "green", "hair");
   savedCountLabelLayer->padding(1);
   savedCountLabelLayer->writeLine("Saved🗂️");
 
+  // create a 7-segment layer for showing the number of saved images
   savedCountLayer = dumbdisplay.create7SegmentRowLayer(2);
   savedCountLayer->backgroundColor("azure");
   savedCountLayer->border(10, "red", "flat");
@@ -159,6 +167,7 @@ void initializeDD() {
   // create a tunnel for retrieving JPEG image data from DumbDisplay app storage
   imageRetrieverTunnel = dumbdisplay.createImageRetrieverTunnel();
 
+  // auto pin the layers
   dumbdisplay.configAutoPin(DDAutoPinConfig('V')
     .addLayer(imageLayer)
     .beginGroup('H')
@@ -246,6 +255,7 @@ void updateDD(bool isFirstUpdate) {
   bool updateUI = isFirstUpdate;
 
   if (autoSaveOptionLayer->getFeedback() != NULL) {
+    // toggle auto save
     autoSave = !autoSave;
     updateUI = true;
   }
@@ -260,6 +270,7 @@ void updateDD(bool isFirstUpdate) {
 
   if (state == NOTHING) {
     if (saveButtonLayer->getFeedback() != NULL) {
+      // save the current image
       saveButtonLayer->disabled(true);
       saveCurrentImage();
     }
@@ -268,6 +279,7 @@ void updateDD(bool isFirstUpdate) {
   const DDFeedback* fb = savedCountLayer->getFeedback();
   if (state == NOTHING) {
     if (fb != NULL && fb->type == DOUBLECLICK) {
+      // delete all saved images
       if (state == NOTHING) {
         savedCountLayer->flash();
         deleteAllSavedImage();
@@ -277,6 +289,7 @@ void updateDD(bool isFirstUpdate) {
 
   if (isFirstUpdate || state == NOTHING) {
     if (isFirstUpdate || imageLayer->getFeedback() != NULL) {
+      // trigger download image
       saveButtonLayer->disabled(true);
       imageLayer->noBackgroundColor();
       state = DOWNLOADING_FOR_IMAGE;
@@ -285,7 +298,7 @@ void updateDD(bool isFirstUpdate) {
   }
 
   if (state == DOWNLOADING_FOR_IMAGE) {
-    // set the URL to download web image ... using a bit different size so that web image will be different 
+    // set the URL to download web image 
     currentJpegImage.release();
     String url = getDownloadImageURL();
     webImageTunnel->reconnectTo(url);
@@ -315,6 +328,7 @@ void updateDD(bool isFirstUpdate) {
   }
 
   if (state == RETRIEVING_IMAGE) {
+    // read the retrieve image (if it is available)
     DDJpegImage jpegImage;
     bool retrievedImage = imageRetrieverTunnel->readJpegImage(jpegImage);
     if (retrievedImage) {
@@ -428,6 +442,7 @@ void loop() {
   });
   if (pdd.isIdle()) {
     if (pdd.justBecameIdle()) {
+      // re-start slide show
       dumbdisplay.logToSerial("# idle");
       tft.fillScreen(COLOR_IDLE_BG);
       nextShowImageIndex = 0;
@@ -436,6 +451,7 @@ void loop() {
     unsigned long now = millis();
     if (now >= nextMillis) {
       if (MAX_IMAGE_COUNT > 0 && savedImageCount > 0) {
+        // display the "next" saved image
         DDJpegImage dummyImage;
         DDJpegImage& jpegImage = getSavedImage(dummyImage);
         dumbdisplay.logToSerial("# nextShowImageIndex: " + String(nextShowImageIndex));
@@ -449,7 +465,7 @@ void loop() {
         }
         nextShowImageIndex = (nextShowImageIndex + 1) % savedImageCount;
       } else {
-        dumbdisplay.logToSerial("# ...");
+        dumbdisplay.logToSerial("# <nothing>");
       }
       nextMillis = now + NEXT_S * 1000;
     }
