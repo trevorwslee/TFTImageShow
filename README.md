@@ -383,8 +383,190 @@ And **Jpeg** image can be read back like
 
 # Sketch Highlight -- DumbDisplay
 
-TODO
+Like all other use cases of using DumbDisplay, you first declare a global `DumbDisplay` object `dumbdisplay`
+```
+#if defined(WIFI_SSID)
+  #include "wifidumbdisplay.h"
+  DumbDisplay dumbdisplay(new DDWiFiServerIO(WIFI_SSID, WIFI_PASSWORD));
+#else
+  #include "dumbdisplay.h"
+  DumbDisplay dumbdisplay(new DDInputOutput());
+#endif
+```
+There, the new configured `DDWiFiServerIO` is one of the few ways to establish connection with DumbDisplay Android app.
+Like in "no WiFi" case, Serial UART `DDInputOutput` is used.
 
+Then, several global helper objects / pointers are declared
+```
+DDMasterResetPassiveConnectionHelper pdd(dumbdisplay);
+GraphicalDDLayer* imageLayer;
+LcdDDLayer* saveButtonLayer;
+LcdDDLayer* autoSaveOptionLayer;
+LcdDDLayer* savedCountLabelLayer;
+SevenSegmentRowDDLayer* savedCountLayer;
+SimpleToolDDTunnel* webImageTunnel;
+ImageRetrieverDDTunnel* imageRetrieverTunnel = NULL;
+```
+* The `DDMasterResetPassiveConnectionHelper` global object `pdd` is a helper for managing connect and reconnection with DumbDisplay app.
+* The `GraphicalDDLayer` pointer `imageLayer` is the `canvas` to which downloaded image is drawn to.
+  Like other layers, they the layer is created later, in this case, when DumbDisplay app is created.
+* The `LcdDDLayer` pointers `saveButtonLayer`, `autoSaveOptionLayer` and `savedCountLabelLayer` are for **save** button, *auto-save* button, and *saved-count* label respectively.
+* The `SevenSegmentRowDDLayer` pointer `savedCountLayer` is for show the saved image count.
+* The `SimpleToolDDTunnel` pointer `webImageTunnel` is for download image to DumbDisplay Android app purpose. It will be created together with other layers and `tunnels`.
+* The `ImageRetrieverDDTunnel` pointer `imageRetrieverTunnel` is for retrieving the data of the downloaded image, in **Jpeg** format.
+
+The life-cycle of the above DumbDisplay layers and "tunnels" are managed by the global `pdd` object, which will monitor connection and disconnection of
+DumbDisplay app, calling appropriate user-defined functions as well as DumbDisplay functions in the appropriate time. It is cooperatively given "time slices" in the `loop()` block like
+```
+  void loop() {
+    ...
+    pdd.loop(initializeDD, updateDD);
+    ...
+  }
+```
+
+The `initializeDD` is the function defined in the sketch that is supposed to create the various layer and tunnel objects.
+```
+void initializeDD() {
+  tft.fillScreen(COLOR_BG);
+  // create a graphical layer for drawing the downloaded web image to
+  imageLayer = dumbdisplay.createGraphicalLayer(2 * TFT_WIDTH, 2 * TFT_HEIGHT);
+  ...
+  // create a LCD layer for the save button
+  saveButtonLayer = dumbdisplay.createLcdLayer(6, 2);
+  ...
+  // create a LCD layer for the auto save option
+  autoSaveOptionLayer = dumbdisplay.createLcdLayer(6, 1);
+  ...
+  // create a LCD layer as the label for the number of saved images
+  savedCountLabelLayer = dumbdisplay.createLcdLayer(8, 1);
+  ...
+  // create a 7-segment layer for showing the number of saved images
+  savedCountLayer = dumbdisplay.create7SegmentRowLayer(2);
+  ...
+  // create a tunnel for downloading web image ... initially, no URL yet ... downloaded.png is the name of the image to save
+  webImageTunnel = dumbdisplay.createImageDownloadTunnel("", "downloaded.png");
+  ...
+  // create a tunnel for retrieving JPEG image data from DumbDisplay app storage
+  imageRetrieverTunnel = dumbdisplay.createImageRetrieverTunnel();
+  // auto pin the layers
+  dumbdisplay.configAutoPin(DDAutoPinConfig('V')
+    .addLayer(imageLayer)
+    .beginGroup('H')
+      ...
+    .endGroup()
+    .build());
+}
+```
+
+The `updateDD` is the function define in the sketch that is supposed to receive "time slices" to update / act-on the layer and tunnel objects.
+```
+  bool isFirstUpdate = !pdd.firstUpdated();
+  bool updateUI = isFirstUpdate;
+  if (autoSaveOptionLayer->getFeedback() != NULL) {
+    // toggle auto save
+    autoSave = !autoSave;
+    updateUI = true;
+  }
+  if (updateUI) {
+    if (autoSave) {
+      autoSaveOptionLayer->writeLine("Auto✅️"); 
+    } else {
+      autoSaveOptionLayer->writeLine("Auto⛔");
+    }
+  }
+  ...
+  if (isFirstUpdate || state == NOTHING) {
+    if (isFirstUpdate || imageLayer->getFeedback() != NULL) {
+      // trigger download image
+      saveButtonLayer->disabled(true);
+      imageLayer->noBackgroundColor();
+      state = DOWNLOADING_FOR_IMAGE;
+    }
+    return;
+  }
+  if (state == DOWNLOADING_FOR_IMAGE) {
+    // set the URL to download web image 
+    currentJpegImage.release();
+    String url = getDownloadImageURL();
+    webImageTunnel->reconnectTo(url);
+    imageLayer->clear();
+    imageLayer->write("downloading image ...");
+    state = WAITING_FOR_IMAGE_DOWNLOADED;
+    return;
+  }
+  if (state == WAITING_FOR_IMAGE_DOWNLOADED) {
+    int result = webImageTunnel->checkResult();
+    if (result == 1) {
+      // web image downloaded ... retrieve JPEG data of the image
+      imageRetrieverTunnel->reconnectForJpegImage("downloaded.png", TFT_WIDTH, TFT_HEIGHT);
+      imageLayer->clear();
+      imageLayer->drawImageFileFit("downloaded.png");
+      state = RETRIEVING_IMAGE;
+      retrieveStartMillis = millis();
+    } else if (result == -1) {
+      // failed to download the image
+      imageLayer->clear();
+      imageLayer->write("!!! failed to download image !!!");
+      dumbdisplay.writeComment("XXX failed to download XXX");
+      state = NOTHING;
+    }
+    return;
+  }
+  if (state == RETRIEVING_IMAGE) {
+    // read the retrieve image (if it is available)
+    DDJpegImage jpegImage;
+    bool retrievedImage = imageRetrieverTunnel->readJpegImage(jpegImage);
+    if (retrievedImage) {
+      unsigned long retrieveTakenMillis = millis() - retrieveStartMillis;
+      dumbdisplay.writeComment(String("* ") + jpegImage.width + "x" + jpegImage.height + " (" + String(jpegImage.byteCount / 1024.0) + " KB) in " + String(retrieveTakenMillis / 1000.0) + "s");
+      if (jpegImage.isValid()) {
+        ...
+      } else {
+        ...
+      }
+      ...
+      state = NOTHING;
+    }   
+    return
+  }  
+```
+
+Notice
+* how layer "feedback" (e.g. clicking) is received using `getFeedback()`
+* how the `webImageTunnel` "tunnel" is used to download image with call to `reconnectTo()`  
+* how the `imageRetrieverTunnel` "tunnel" is used to initiate retrieving of download image data with call to `reconnectForJpegImage()`
+* how the image data (`DDJpegImage`) is received via the tunnel `imageRetrieverTunnel` with call to `readJpegImage()`
+
+The whole `updateDD` basically is a state-machine that handles the different states (`state`) of the UI processing:
+- `NOTHING` -- just started, or finished download / saving of image; will wait for `imageLayer` being clicked to initiate an image
+- `DOWNLOADING_FOR_IMAGE` -- this state could have been merged with previous stage; anyway, it reconnects `webImageTunnel` to activate an image download
+- `WAITING_FOR_IMAGE_DOWNLOADED`  -- waiting for download image to complete; then will retrieve the download image to be displayed to the TFT LCD screen
+- `RETRIEVING_IMAGE` -- retrieving the download image data to be transferred to the microcontroller; once retrieved, display the image to the TFT LCD screen
+
+
+
+The slide show is carried out when "idle" (not connected to DumbDisplay app)  
+```
+void loop() {
+  pdd.loop(initializeDD, updateDD);
+  if (pdd.isIdle()) {
+    if (pdd.justBecameIdle()) {
+      // re-start slide show
+      ...
+    }
+    unsigned long now = millis();
+    if (now >= nextMillis) {
+      if (MAX_IMAGE_COUNT > 0 && savedImageCount > 0) {
+        ...
+      } else {
+        ...
+      }
+      ...
+    }
+  }
+}
+```
 
 # Build and Upload
 

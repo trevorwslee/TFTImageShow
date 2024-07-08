@@ -76,8 +76,8 @@ bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap) 
 DDMasterResetPassiveConnectionHelper pdd(dumbdisplay);
 
 GraphicalDDLayer* imageLayer;
-LcdDDLayer* autoSaveOptionLayer;
 LcdDDLayer* saveButtonLayer;
+LcdDDLayer* autoSaveOptionLayer;
 LcdDDLayer* savedCountLabelLayer;
 SevenSegmentRowDDLayer* savedCountLayer;
 SimpleToolDDTunnel* webImageTunnel;
@@ -439,7 +439,7 @@ void loop() {
         DDJpegImage dummyImage;
         DDJpegImage& jpegImage = getSavedImage(dummyImage);
         dumbdisplay.logToSerial("# nextShowImageIndex: " + String(nextShowImageIndex));
-       if (jpegImage.isValid()) {
+        if (jpegImage.isValid()) {
           tft.fillScreen(COLOR_IDLE_BG);
           int x = (TFT_WIDTH - jpegImage.width) / 2;
           int y = (TFT_HEIGHT - jpegImage.height) / 2;
