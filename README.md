@@ -9,17 +9,15 @@ id: 1914271
 
 # Simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
 
-The target of this [project](https://github.com/trevorwslee/TFTImageShow) is to implement, mostly the software part, of a simple Arduino framework photos / images showing "photo frame" using Raspberry Pi Pico or ESP32 with photos / images downloaded from the Internet via DumbDisplay -- an Android app running on your Android phone.
+The target of this [project](https://github.com/trevorwslee/TFTImageShow) is to implement, mostly the software part, a simple Arduino framework photos / images showing "photo frame" using Raspberry Pi Pico or ESP32 with photos / images downloaded from the Internet via DumbDisplay -- an Android app running on your Android phone.
 
 The microcontroller program here is developed in Arduino framework using VS Code and PlatformIO, in the similar fashion as described by the post -- [A Way to Run Arduino Sketch With VSCode PlatformIO Directly](https://www.instructables.com/A-Way-to-Run-Arduino-Sketch-With-VSCode-PlatformIO/)
 
 The simple remote UI for downloading photos / images from the Internet is realized with the help of the DumbDisplay Android app. For a brief description of DumbDisplay, you may want to refer to the post -- [Blink Test With Virtual Display, DumbDisplay](https://www.instructables.com/Blink-Test-With-Virtual-Display-DumbDisplay/)
 
-Please note that
-* The UI is driven by the microcontroller program. I.e., the control flow of the UI is programmed by the sketch.
-* The downloaded image -- be it in **Jpeg** or **PNG** format -- will be transferred to the microcontroller board in **Jpeg** format, scaled to site inside the TFT LCD screen.
+Please note that the UI is driven by the microcontroller program; i.e., the control flow of the UI is programmed in the sketch. Additionally, please note that the downloaded image, be it in **Jpeg** or **PNG** format, will be transferred to the microcontroller board in **Jpeg** format, scaled to site inside the TFT LCD screen.
 
-For Raspberry Pi Pico board (WiFi), a ST7789 2.8 inch 240x320 SPI TFT LCD screen is attached to a Raspberry Pi PicoW board.
+For Raspberry Pi Pico board (WiFi), a ST7789 2.8 inch 240x320 SPI TFT LCD screen is attached to a Raspberry Pi Pico board.
 The TFT LCD module library used is the `Adafruit-ST7735-Library` Arduino library.
 
 For ESP32, LiLyGo TDisplay / TCamera Plus board is used. 
@@ -63,7 +61,7 @@ If you want to initiate another download of image, click on the canvas that show
 If you want to delete all the saved images, double-click on the [7-segment] *number*.
 
 After you are done with downloading and saving images, disconnect the microcontroller.
-After disconnection, the "photo frame" slide show begins in the microcontroller side.
+After disconnection, the "photo frame" slide show begins on the microcontroller side.
 
 Anytime you want to change the saved images, reconnect to DumbDisplay Android app.
 
@@ -235,7 +233,7 @@ const char* getDownloadImageURL() {
 ```
 * The slide show delay is defined by the macro `NEXT_S`, which default to 5 seconds
 * The maximum number of saved images is defined by the macro `MAX_IMAGE_COUNT`, which default to 10.
-  Note that if you set `MAX_IMAGE_COUNT`, flash and run the sketch, the **LittleFS** storage will be reformatted.
+  Note that if you set `MAX_IMAGE_COUNT` to 0, flash and run the sketch, the **LittleFS** storage will be reformatted.
   For normal running, `MAX_IMAGE_COUNT` should be at lease 1.
 * You can modify `urls` / `getDownloadImageURL()` to add / remove Internet sites for downloading images.  
 
@@ -273,7 +271,10 @@ Then in `setup()`
 
 # Sketch Highlight -- TFT LCD Library `bodmer/TFT_eSPI` 
 
-First a global `tft` object is defined like
+Here is how `bodmer/TFT_eSPI` used in the sketch.
+
+
+First, a global `tft` object is defined like
 ```
   #include <TFT_eSPI.h>
   TFT_eSPI tft = TFT_eSPI();
@@ -286,6 +287,11 @@ Then in `setup()`
 ```
 
 # Sketch Highlight -- Jpeg Library `bodmer/TJpg_Decoder` 
+
+You might be wondering why use **Jpeg** but not RGB565 directly. Simply because of the very high data compression ratio of **Jpeg**.
+
+Anyway, here is how `bodmer/TJpg_Decoder` used in the sketch.
+
 
 Include the needed headers
 ```
@@ -316,7 +322,7 @@ bool tft_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t* bitmap) 
   return 1;
 }
 ```
-Notice that in case of using `bodmer/TFT_eSPI`, the way is draw the decoded **Jpeg** chunk is 
+Notice that in case of using `bodmer/TFT_eSPI`, the way to draw the decoded **Jpeg** chunk is 
 ```
   tft.pushRect(x, y, w, h, bitmap);
 ```
@@ -538,7 +544,7 @@ Notice
 * how the `imageRetrieverTunnel` "tunnel" is used to initiate retrieving of download image data with call to `reconnectForJpegImage()`
 * how the image data (`DDJpegImage`) is received via the tunnel `imageRetrieverTunnel` with call to `readJpegImage()`
 
-The whole `updateDD` basically is a state-machine that handles the different states (`state`) of the UI processing:
+The whole `updateDD` basically is a "state-machine" that handles the different states (`state`) of the UI processing:
 - `NOTHING` -- just started, or finished download / saving of image; will wait for `imageLayer` being clicked to initiate an image
 - `DOWNLOADING_FOR_IMAGE` -- this state could have been merged with previous stage; anyway, it reconnects `webImageTunnel` to activate an image download
 - `WAITING_FOR_IMAGE_DOWNLOADED`  -- waiting for download image to complete; then will retrieve the download image to be displayed to the TFT LCD screen
