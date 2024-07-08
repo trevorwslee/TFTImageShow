@@ -5,6 +5,7 @@ tags: 'raspberrypipico, esp32, spitftlcd'
 cover_image: ./imgs/MAIN.jpg
 published: true
 id: 1914271
+date: '2024-07-08T10:06:04Z'
 ---
 
 # Simple Arduino Framework Raspberry Pi Pico / ESP32 TFT LCD Photo Frame Implementation with Photos Downloaded from the Internet via DumbDisplay
