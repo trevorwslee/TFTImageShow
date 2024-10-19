@@ -1,4 +1,3 @@
-
 #include "Arduino.h"
 
 
@@ -52,6 +51,20 @@
   Adafruit_ST7789 tft(&SPI1, A_TFT_CS, A_TFT_DC, A_TFT_RST);
   //Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_RST);
   //Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_MOSI, A_TFT_SCLK, A_TFT_RST);
+#elif defined(FOR_ESP32_LCD)  
+  // https://randomnerdtutorials.com/esp32-tft-touchscreen-display-2-8-ili9341-arduino/
+  #define A_TFT_BL    21
+  #define A_TFT_CS    15
+  #define A_TFT_DC    2
+  #define A_TFT_SCLK  14
+  #define A_TFT_MOSI  13
+  #define A_TFT_MISO  12
+  #define TFT_WIDTH   320
+  #define TFT_HEIGHT  240
+  #include "Adafruit_ILI9341.h"
+  SPIClass spi(HSPI);
+  Adafruit_ILI9341 tft(&spi, A_TFT_DC, A_TFT_CS);
+  //Adafruit_ILI9341 tft(A_TFT_CS, A_TFT_DC, A_TFT_MOSI, A_TFT_SCLK);
 #elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)
   #include <TFT_eSPI.h>
   TFT_eSPI tft = TFT_eSPI();
@@ -400,6 +413,15 @@ void setup() {
   }
   tft.init(TFT_WIDTH, TFT_HEIGHT, SPI_MODE0);
   tft.setRotation(3);
+#elif defined(FOR_ESP32_LCD)  
+  pinMode(A_TFT_BL, OUTPUT);
+  digitalWrite(A_TFT_BL, 1);  // light it up
+  if (true) {
+    //spi.setFrequency(40000000);
+    spi.begin(A_TFT_SCLK, A_TFT_MISO, A_TFT_MOSI, A_TFT_CS);
+  }
+  tft.begin();
+  tft.setRotation(1);
 #elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)  
   tft.init();
   tft.setRotation(0);
@@ -415,7 +437,11 @@ void setup() {
 
   tft.fillScreen(COLOR_INVALID_BG);
 
-  //tft.drawCircle(50, 50, 100, ST77XX_YELLOW);
+#if defined(FOR_PICOW_GP)  
+  tft.drawCircle(50, 50, 100, ST77XX_YELLOW);
+#elif defined(FOR_ESP32_LCD)  
+  tft.drawCircle(50, 50, 100, ILI9341_YELLOW);
+#endif  
 }
 
 bool initializeStorageFS = false;
