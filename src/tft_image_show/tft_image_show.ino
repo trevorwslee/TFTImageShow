@@ -36,6 +36,22 @@
   #define TFT_HEIGHT  240
   #include <Adafruit_ST7789.h>
   Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_RST);
+#elif defined(FOR_PICOW_GP)  
+  #define A_TFT_BL    7
+  #define A_TFT_CS    9
+  #define A_TFT_DC    8
+  #define A_TFT_SCLK  10
+  #define A_TFT_MOSI  11
+  #define A_TFT_RST   12
+  #define TFT_WIDTH   240
+  #define TFT_HEIGHT  240
+  #include <Adafruit_ST7789.h>
+  // SPI1.setSCK(A_TFT_SCLK);
+  // SPI1.setMOSI(A_TFT_MOSI);
+  // SPI1.begin(true);
+  Adafruit_ST7789 tft(&SPI1, A_TFT_CS, A_TFT_DC, A_TFT_RST);
+  //Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_RST);
+  //Adafruit_ST7789 tft(A_TFT_CS, A_TFT_DC, A_TFT_MOSI, A_TFT_SCLK, A_TFT_RST);
 #elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)
   #include <TFT_eSPI.h>
   TFT_eSPI tft = TFT_eSPI();
@@ -368,6 +384,22 @@ void setup() {
   tft.invertDisplay(false);
   tft.setRotation(1);
   tft.setSPISpeed(40000000);
+#elif defined(FOR_PICOW_GP)  
+  if (false) {
+    tft.setSPISpeed(10000000);
+    SPI1.setSCK(A_TFT_SCLK);
+    SPI1.setMOSI(A_TFT_MOSI);
+    SPI1.begin(true);
+  }
+  pinMode(A_TFT_BL, OUTPUT);
+  digitalWrite(A_TFT_BL, 1);  // light it up
+  if (true) {
+    SPI1.setSCK(A_TFT_SCLK);
+    SPI1.setMOSI(A_TFT_MOSI);
+    //tft.initSPI(10000 * 1000, SPI_MODE0);
+  }
+  tft.init(TFT_WIDTH, TFT_HEIGHT, SPI_MODE0);
+  tft.setRotation(3);
 #elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)  
   tft.init();
   tft.setRotation(0);
@@ -382,6 +414,8 @@ void setup() {
   TJpgDec.setCallback(tft_output);
 
   tft.fillScreen(COLOR_INVALID_BG);
+
+  //tft.drawCircle(50, 50, 100, ST77XX_YELLOW);
 }
 
 bool initializeStorageFS = false;
@@ -391,7 +425,7 @@ unsigned long nextMillis = 0;
 void loop() {
   if (!initializeStorageFS) {
     savedImageCount = 0;
-    dumbdisplay.logToSerial("Initialized STORAGE_FS");
+    dumbdisplay.logToSerial("Initialize STORAGE_FS");
     if (MAX_IMAGE_COUNT > 0 && LittleFS.begin()) {
       dumbdisplay.logToSerial("... existing STORAGE_FS ...");
       for (int i = 0; i < MAX_IMAGE_COUNT; i++) {
