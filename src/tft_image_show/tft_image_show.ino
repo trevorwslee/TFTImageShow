@@ -68,6 +68,21 @@
 #elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)
   #include <TFT_eSPI.h>
   TFT_eSPI tft = TFT_eSPI();
+#elif defined(FOR_ESPSPARTBOT)
+  #define TFT_BL      46
+  #define TFT_CS      44
+  #define TFT_DC      43
+  #define TFT_SCLK    21
+  #define TFT_MOSI    47
+  #define TFT_RST     -1
+  #define TFT_WIDTH   240
+  #define TFT_HEIGHT  240
+  #include <Adafruit_GFX.h>    // Core graphics library
+  #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
+  #include <SPI.h>             // Arduino SPI library
+  #include "ddatftutil.h"
+  SPIClass spi = SPIClass(HSPI);
+  Adafruit_ST7789 tft(&spi, TFT_CS, TFT_DC, TFT_RST);
 #else
   #error board not supported
 #endif
@@ -425,6 +440,16 @@ void setup() {
 #elif defined(FOR_TDISPLAY) || defined(FOR_TCAMERAPLUS)  
   tft.init();
   tft.setRotation(0);
+#elif defined(FOR_ESPSPARTBOT)
+  pinMode(TFT_BL, OUTPUT);
+  digitalWrite(TFT_BL, 1);  // light it up
+  spi.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
+  tft.setSPISpeed(40000000);
+  tft.init(240, 240, SPI_MODE0);
+  tft.setRotation(2);
+  // tft.fillScreen(ST77XX_GREEN);
+  // tft.setTextColor(ST77XX_RED, ST77XX_GREEN);
+  // tft.setTextSize(2);
 #else
   #error board not supported
 #endif  
