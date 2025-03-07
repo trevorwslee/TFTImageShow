@@ -68,7 +68,7 @@
   SPIClass spi(HSPI);
   Adafruit_ILI9341 tft(&spi, A_TFT_DC, A_TFT_CS);
   //Adafruit_ILI9341 tft(A_TFT_CS, A_TFT_DC, A_TFT_MOSI, A_TFT_SCLK);
-#elif defined(FOR_ESP32C3_TV)  
+#elif defined(FOR_PYCLICK)  
   #define TFT_CS     5
   #define TFT_DC     4
   #define TFT_SCLK   6
@@ -453,7 +453,7 @@ void setup() {
   }
   tft.begin();
   tft.setRotation(1);
-#elif defined(FOR_ESP32C3_TV)  
+#elif defined(FOR_PYCLOCK)  
   spi.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
   tft.init(240, 240, SPI_MODE0);
   tft.invertDisplay(true);
