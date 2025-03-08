@@ -68,7 +68,7 @@
   SPIClass spi(HSPI);
   Adafruit_ILI9341 tft(&spi, A_TFT_DC, A_TFT_CS);
   //Adafruit_ILI9341 tft(A_TFT_CS, A_TFT_DC, A_TFT_MOSI, A_TFT_SCLK);
-#elif defined(FOR_PYCLICK)  
+#elif defined(FOR_PYCLOCK)  
   #define TFT_CS     5
   #define TFT_DC     4
   #define TFT_SCLK   6
